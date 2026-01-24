@@ -23,7 +23,6 @@ BENCH_SRCS = benchmark/main.cpp
 
 # Targets
 all: kavac kavavm benchmark
-
 # Compilador
 kavac: $(COMPILER_SRCS)
 	$(CXX) $(CXXFLAGS) $(COMPILER_SRCS) -o kavac
@@ -76,4 +75,4 @@ install: all
 	cp kavavm /usr/local/bin/
 
 # Documentação
-.PHONY: all clean test bench install
+.PHONY: all clean test bench install benchmark
