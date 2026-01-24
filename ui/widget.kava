@@ -1,0 +1,30 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+// Definição base de Widgets para KAVA 2.0
+
+class Widget {
+    let x = 0
+    let y = 0
+    let width = 100
+    let height = 30
+    let visible = true
+
+    func show() {
+        visible = true
+    }
+
+    func hide() {
+        visible = false
+    }
+}
+
+class Button {
+    let label = "Button"
+    
+    func click() {
+        print "Botão clicado: " + label
+    }
+}

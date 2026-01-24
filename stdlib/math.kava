@@ -1,0 +1,27 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+// Biblioteca de Matemática KAVA 2.0
+
+func abs(n) {
+    if (n < 0) {
+        return 0 - n
+    }
+    return n
+}
+
+func max(a, b) {
+    if (a > b) {
+        return a
+    }
+    return b
+}
+
+func min(a, b) {
+    if (a < b) {
+        return a
+    }
+    return b
+}

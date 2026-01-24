@@ -1,0 +1,29 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+import gfx
+
+class Button {
+    let x = 0
+    let y = 0
+    let w = 100
+    let h = 40
+    let text = "OK"
+    let color = 200
+
+    func draw(win) {
+        win.drawRect(x, y, w, h)
+    }
+}
+
+class Label {
+    let x = 0
+    let y = 0
+    let text = ""
+
+    func draw(win) {
+        // Texto seria implementado via SDL_ttf
+    }
+}

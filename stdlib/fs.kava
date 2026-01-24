@@ -1,0 +1,22 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+class File {
+    let path = ""
+    let handle = 0
+
+    func open(p, mode) {
+        path = p
+        handle = native_call("fs_open", path, mode)
+    }
+
+    func write(content) {
+        native_call("fs_write", handle, content)
+    }
+
+    func close() {
+        native_call("fs_close", handle)
+    }
+}

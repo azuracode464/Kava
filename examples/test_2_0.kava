@@ -1,0 +1,25 @@
+/*
+ * Teste das funcionalidades KAVA 2.0
+ */
+
+let x = 10
+let y = 20
+let soma = x + y
+
+print soma // Deve imprimir 30
+
+if (soma > 25) {
+    print 100 // Deve imprimir 100
+} else {
+    print 200
+}
+
+let i = 0
+while (i < 5) {
+    print i
+    i = i + 1
+}
+// Deve imprimir 0, 1, 2, 3, 4
+
+x = 50
+print x // Deve imprimir 50

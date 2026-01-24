@@ -1,0 +1,24 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+import io
+
+class Greeter {
+    let greeting = "Olá"
+
+    func sayHello(name) {
+        print greeting + ", " + name + "!"
+    }
+}
+
+func main() {
+    let name = "Mundo KAVA 2.0"
+    let g = new Greeter()
+    g.sayHello(name)
+    
+    let a = 10
+    let b = 32
+    print a + b // Deve imprimir 42
+}

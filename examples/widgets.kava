@@ -1,0 +1,22 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+import ui
+
+func main() {
+    let app = ui.App("KAVA GUI")
+    
+    let btn = ui.Button("Clique Aqui")
+    btn.onClick = func() {
+        print "Botão clicado!"
+    }
+    
+    let label = ui.Label("Olá, KAVA 2.0")
+    
+    app.add(label)
+    app.add(btn)
+    
+    app.run()
+}

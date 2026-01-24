@@ -1,0 +1,15 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+// Biblioteca padrão de I/O para KAVA 2.0
+
+func println(message) {
+    print message
+}
+
+func readInt() {
+    // Implementação nativa via VM
+    return native_call("io_read_int")
+}

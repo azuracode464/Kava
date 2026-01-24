@@ -1,0 +1,31 @@
+/*
+ * KAVA 2.0 - SDL2 Graphics Preview
+ */
+
+// Inicializa janela 800x600
+// Na versão final, isso seria feito via import gfx
+// Aqui usamos os opcodes nativos mapeados na VM
+
+let x = 100
+let y = 100
+let dx = 2
+let dy = 2
+
+while (1 == 1) {
+    // Limpa tela (Preto)
+    // native_gfx_clear(0, 0, 0)
+    
+    // Desenha Retângulo (Bola)
+    // native_gfx_draw_rect(x, y, 20, 20)
+    
+    x = x + dx
+    y = y + dy
+    
+    if (x > 780) { dx = -2 }
+    if (x < 0) { dx = 2 }
+    if (y > 580) { dy = -2 }
+    if (y < 0) { dy = 2 }
+    
+    // Apresenta frame
+    // native_gfx_present()
+}

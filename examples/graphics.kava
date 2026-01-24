@@ -1,0 +1,27 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+import gfx
+
+func main() {
+    let win = gfx.Window(800, 600, "KAVA 2.0 Graphics")
+    
+    let x = 50
+    let y = 50
+    
+    while win.isOpen() {
+        win.clear(0, 0, 0) // Preto
+        
+        win.drawRect(x, y, 200, 100, 255, 0, 0) // Retângulo vermelho
+        
+        x = x + 1
+        if (x > 600) {
+            x = 50
+        }
+        
+        win.present()
+        win.pollEvents()
+    }
+}

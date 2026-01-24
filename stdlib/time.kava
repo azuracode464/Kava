@@ -1,0 +1,12 @@
+/*
+ * MIT License
+ * Copyright (c) 2026 KAVA Team
+ */
+
+func sleep(ms) {
+    native_call("time_sleep", ms)
+}
+
+func now() {
+    return native_call("time_now")
+}
