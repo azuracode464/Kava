@@ -1,382 +1,145 @@
-# KAVA 2.5 - Plataforma de Programacao Profissional
-
-```
-██╗  ██╗ █████╗ ██╗   ██╗ █████╗     ██████╗    ███████╗
-██║ ██╔╝██╔══██╗██║   ██║██╔══██╗    ╚════██╗   ██╔════╝
-█████╔╝ ███████║██║   ██║███████║     █████╔╝   ███████╗
-██╔═██╗ ██╔══██║╚██╗ ██╔╝██╔══██║    ██╔═══╝    ╚════██║
-██║  ██╗██║  ██║ ╚████╔╝ ██║  ██║    ███████╗   ███████║
-╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═╝    ╚══════╝   ╚══════╝
-```
-
-**KAVA 2.5** e uma linguagem de programacao completa, profissional e de alto desempenho, inspirada no Java 8+. Projetada para ser leve, rapida e moderna - **2.10x mais rapida que Java 8 HotSpot**.
-
-## Objetivo
-
-Criar uma linguagem equivalente ao Java 8 em capacidades, mas otimizada para:
-- **2.10x mais rapida** que Java 8 HotSpot (comprovado por benchmarks)
-- Menor uso de memoria
-- Tempo de inicializacao reduzido da VM
-- Suporte a features modernas (lambdas, streams, async/await)
-- Ecossistema completo com package manager (KPM)
-
-## Novidades da KAVA 2.5
-
-### Lambdas / Funcoes Anonimas
-```java
-// Lambda com expressao
-let double = (x) -> x * 2
-
-// Lambda com bloco
-let process = (x) -> {
-    let result = x * x + 1
-    return result
-}
-
-// Lambda como argumento
-list.forEach((item) -> print item)
-```
-
-### Streams Otimizadas
-```java
-// Stream pipeline (sem overhead do Java)
-let result = numbers.stream()
-    .filter((x) -> x % 2 == 0)
-    .map((x) -> x * 3)
-    .sum()
-
-// Operacoes: filter, map, flatMap, reduce, forEach,
-//            count, sum, min, max, distinct, sorted,
-//            limit, skip, toList, anyMatch, allMatch
-```
-
-### Async / Await
-```java
-async func fetchData(url) {
-    let response = await http.get(url)
-    return response.body
-}
-
-// Event loop proprio com IO threads
-let data = await fetchData("http://example.com")
-```
-
-### Pipe Operator
-```java
-// value |> func  =>  func(value)
-let result = 42 |> double |> addOne |> toString
-```
-
-### Interfaces Funcionais
-```java
-@FunctionalInterface
-interface Transformer<T, R> {
-    R transform(T input)
-}
-
-Transformer<int, String> conv = (n) -> "valor: " + n
-```
-
-## Performance vs Java 8
-
-```
-Benchmark               KAVA 2.5  Java 8 (est)  Speedup  Result
-----------------------------------------------------------------------
-Arithmetic Loop          195.5 ms    280.0 ms     1.43x    PASS
-Fibonacci(40)            278.0 ms    450.0 ms     1.62x    PASS
-Array Operations          25.4 ms     95.0 ms     3.74x    PASS
-Sorting (5M)             469.8 ms    680.0 ms     1.45x    PASS
-HashMap (2M ops)         213.0 ms    350.0 ms     1.64x    PASS
-Math (sin/cos/log)       165.5 ms    580.0 ms     3.50x    PASS
-String Operations          1.6 ms    120.0 ms    76.66x    PASS
-Object Creation           24.3 ms    180.0 ms     7.40x    PASS
-Stream Operations        160.1 ms    250.0 ms     1.56x    PASS
-Threading (8T)             0.5 ms     90.0 ms   182.90x    PASS
-Async Event Loop          27.1 ms    200.0 ms     7.39x    PASS
-----------------------------------------------------------------------
-Overall: 11/11 PASS | KAVA 2.5 is 2.10x FASTER than Java 8 HotSpot
-```
-
-## VM e JIT
-
-### Maquina Virtual
-- VM stack-based com 200+ opcodes (similar a JVM)
-- Heap gerenciado com Garbage Collector Mark-Sweep + Generational
-- Suporte a lambdas/closures nativas na VM
-- Event loop proprio para async/await
-- IO thread pool (4 threads)
-
-### JIT Compiler
-O JIT identifica hot paths e aplica otimizacoes progressivas:
-
-| Flag | Nivel | Otimizacoes |
-|------|-------|-------------|
-| `-O0` | Debug | Sem otimizacoes, maximo de info para debug |
-| `-O1` | Basico | Constant folding, Dead Code Elimination, inline simples |
-| `-O2` | Medio | O1 + Loop unrolling, Register caching |
-| `-O3` | Agressivo | O2 + Superinstructions, inline agressivo, bounds check elimination |
-
-**Superinstructions (-O3):**
-- `SUPER_LOAD_LOAD_ADD` - Funde load+load+add em 1 instrucao
-- `SUPER_LOAD_LOAD_MUL` - Funde load+load+mul em 1 instrucao
-- `SUPER_PUSH_STORE` - Funde push+store em 1 instrucao
-- `SUPER_LOAD_CMP_JZ` - Funde load+cmp+jump (loop condition)
-
-## Ecossistema
-
-### Runtime
-- Event loop proprio (microtasks, macrotasks, timers, IO)
-- HTTP server nativo (via stdlib)
-- Async IO com thread pool
-- JSON rapido (stdlib)
-- WebSocket (stdlib)
-
-### KPM - KAVA Package Manager
-```bash
-kpm init [name]      # Inicializa novo projeto
-kpm add <pkg>        # Adiciona dependencia
-kpm add -D <pkg>     # Adiciona dev dependency
-kpm install          # Instala dependencias
-kpm build            # Compila projeto
-kpm test             # Executa testes
-kpm publish          # Publica pacote
-kpm run <script>     # Executa script customizado
-kpm version          # Versao do KPM
-```
-
-### Pacotes da Stdlib
-| Pacote | Descricao |
-|--------|-----------|
-| `http` | HTTP client/server |
-| `json` | Parser/serializer JSON |
-| `fs` | Sistema de arquivos |
-| `net` | Networking (TCP/UDP) |
-| `math` | Funcoes matematicas |
-| `time` | Data/hora, timers |
-| `io` | I/O streams |
-| `gfx` | Graficos (SDL2) |
-| `ui` | Widgets GUI |
-
-## Features Completas (Java 6 + Java 8)
-
-### Sistema de Tipos
-- Tipagem estatica com inferencia (`let`)
-- Tipos primitivos: boolean, byte, char, short, int, long, float, double
-- Classes, Interfaces, Enums, Classes Abstratas
-- Generics com bounds e wildcards
-- Arrays multidimensionais
-
-### Orientacao a Objetos
-- Heranca (`extends`), Polimorfismo (`@Override`)
-- Interfaces (`implements`) com multipla implementacao
-- Construtores com sobrecarga
-- `this`/`super`, static members, inner classes
-- Modificadores: public, protected, private, final, abstract, static, synchronized, volatile, native
-
-### Controle de Fluxo
-- if/else, switch/case, while, do-while, for, for-each
-- break/continue com labels
-- try/catch/finally com multi-catch
-- throw/throws, assert
-- synchronized blocks
-
-### Colecoes
-- ArrayList, LinkedList, HashMap, HashSet
-- Stack, Queue, PriorityQueue
-- Iterable/Iterator pattern
-
-### Threading
-- Thread, Runnable, ThreadPool
-- synchronized, ReentrantLock, Semaphore
-- CountDownLatch, CyclicBarrier, BlockingQueue
-- AtomicInteger, ReadWriteLock
-
-### Anotacoes
-- @Override, @Deprecated, @SuppressWarnings
-- Anotacoes customizadas com elementos
-- Retention (RUNTIME, CLASS, SOURCE)
-
-## Estrutura do Projeto
-
-```
-kava/
-├── compiler/           # Compilador (Lexer, Parser, AST, Codegen)
-│   ├── lexer.h/cpp     # Analisador lexico (100+ tokens)
-│   ├── parser.h/cpp    # Analisador sintatico (Java 6 + KAVA 2.5)
-│   ├── ast.h           # Abstract Syntax Tree (40+ tipos de no)
-│   ├── types.h         # Sistema de tipos completo
-│   ├── codegen.h/cpp   # Gerador de bytecode
-│   ├── semantic.h      # Analise semantica
-│   └── main.cpp        # Entry point do compilador (kavac)
-├── vm/                 # Maquina Virtual
-│   ├── bytecode.h      # 200+ opcodes, including KAVA 2.5
-│   ├── vm.h            # VM completa com JIT, Lambda, Streams, Async
-│   ├── jit.h           # JIT Compiler (-O0 a -O3, superinstructions)
-│   ├── async.h         # Event Loop, Promises, Timers, IO threads
-│   ├── heap.h          # Gerenciamento de memoria (legacy)
-│   ├── runtime.h       # Runtime helpers
-│   └── vm.cpp          # Entry point da VM (kavavm)
-├── gc/                 # Garbage Collector
-│   └── gc.h            # Mark-Sweep + Generational + Write Barrier
-├── collections/        # Framework de Colecoes
-│   └── collections.h   # ArrayList, LinkedList, HashMap, HashSet, etc.
-├── threads/            # Threading & Concorrencia
-│   └── threads.h       # Thread, Lock, Semaphore, Pool, Atomic
-├── benchmark/          # Sistema de Benchmarks
-│   └── main.cpp        # Benchmark vs Java 8 (11 testes)
-├── kpm/                # Package Manager
-│   ├── kpm.h           # KPM core (init, add, build, test, publish)
-│   └── main.cpp        # CLI do KPM
-├── stdlib/             # Biblioteca Padrao (.kava)
-│   ├── http.kava       # HTTP client/server
-│   ├── json.kava       # JSON parser
-│   ├── fs.kava         # File system
-│   ├── net.kava        # Networking
-│   ├── math.kava       # Matematica
-│   ├── time.kava       # Data/hora
-│   ├── io.kava         # I/O streams
-│   ├── gfx.kava        # Graficos SDL2
-│   └── ui.kava         # GUI widgets
-├── examples/           # Exemplos
-│   ├── test_2_0.kava   # Teste de compatibilidade KAVA 2.0
-│   ├── test_2_5.kava   # Teste completo KAVA 2.5
-│   └── hello.kava      # Hello World
-├── tests/              # Suite de Testes
-│   └── run_tests.sh    # Runner automatico (12 testes)
-├── Makefile            # Build system
-├── LICENSE             # MIT License
-└── README.md           # Este arquivo
-```
-
-## Compilacao e Uso
-
-### Requisitos
-- g++ com suporte a C++17
-- make
-- SDL2 (opcional, para graficos)
-
-### Build
-```bash
-# Compila tudo (kavac, kavavm, kavabench, kpm)
-make
-
-# Compila apenas o compilador
-make kavac
-
-# Compila apenas a VM
-make kavavm
-
-# Compila benchmarks
-make kavabench
-
-# Compila package manager
-make kpm
-```
-
-### Compilar e Executar
-```bash
-# Compilar arquivo .kava para bytecode .kvb
-./kavac arquivo.kava
-
-# Executar bytecode
-./kavavm arquivo.kvb
-
-# Exemplo completo
-./kavac examples/test_2_5.kava
-./kavavm examples/test_2_5.kvb
-```
-
-### Testes
-```bash
-# Executa todos os testes (12 testes)
-make test
-# ou
-bash tests/run_tests.sh
-```
-
-### Benchmarks
-```bash
-# Executa benchmarks vs Java 8
-make bench
-# ou
-./kavabench
-```
-
-### Package Manager
-```bash
-# Inicializa projeto
-./kpm_bin init meu-projeto
-
-# Adiciona dependencia
-./kpm_bin add http@^1.0
-
-# Compila
-./kpm_bin build
-
-# Testa
-./kpm_bin test
-```
-
-## Exemplos
-
-### Hello World
-```java
-print "Hello, KAVA 2.5!"
-```
-
-### Variaveis e Aritmetica
-```java
-let a = 10
-let b = 20
-let soma = a + b
-print soma  // 30
-```
-
-### Classes e Heranca
-```java
-public class Animal {
-    protected String name
-    public Animal(String name) { this.name = name }
-    public void speak() { print "..." }
-}
-
-public class Dog extends Animal {
-    public Dog(String name) { super(name) }
-    @Override
-    public void speak() { print "Woof!" }
-}
-```
-
-### Loops e Controle de Fluxo
-```java
-// While
-let i = 0
-while (i < 10) {
-    print i
-    i = i + 1
-}
-
-// If/Else
-if (x > 0) {
-    print "positivo"
-} else {
-    print "nao-positivo"
-}
-```
-
-## Licenca
-
-MIT License - Copyright (c) 2026 KAVA Team
-
-## Creditos
-
-Inspirado por:
-- Java SE 8 (Oracle)
-- JVM HotSpot JIT
-- Node.js Event Loop
-- V8 JavaScript Engine
-- LLVM
 
 ---
 
-**KAVA 2.5** - Modern, Fast, Professional. **2.10x faster than Java 8 HotSpot.**
+# KAVA 2.5 - Plataforma de Programação Profissional
+
+[![Licença: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Versão: 2.5](https://img.shields.io/badge/Version-2.5-blue.svg)](#)
+[![Build: Passing](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](#-compilação-e-uso)
+
+```
+██╗  ██╗ █████╗ ██╗   ██╗ █████╗     ██████╗    ██████╗
+██║ ██╔╝██╔══██╗██║   ██║██╔══██╗    ╚════██╗  ██╔═████╗
+█████╔╝ ███████║██║   ██║███████║     █████╔╝  ██║██╔██║
+██╔═██╗ ██╔══██║╚██╗ ██╔╝██╔══██║    ██╔═══╝   ████╔╝██║
+██║  ██╗██║  ██║ ╚████╔╝ ██║  ██║    ███████╗  ╚██████╔╝
+╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═╝    ╚══════╝   ╚═════╝
+```
+
+**KAVA 2.5** é uma linguagem de programação moderna, de alta performance e com sintaxe familiar, inspirada em Java. Ela foi projetada para ser leve, rápida e educacional, ao mesmo tempo que introduz funcionalidades poderosas para o desenvolvimento profissional, como programação assíncrona, streams e um ecossistema de pacotes.
+
+## 🎯 Objetivos do Projeto
+
+1.  **Performance Superior:** Superar tecnicamente o Java 6 e competir com o Java 8 em benchmarks de performance, focando em execução rápida, baixo uso de memória e inicialização instantânea da VM.
+2.  **Sintaxe Moderna:** Introduzir paradigmas de programação funcional e assíncrona (`lambdas`, `streams`, `async/await`) para simplificar o desenvolvimento de aplicações complexas.
+3.  **Código Educacional:** Manter uma base de código clara e bem documentada, servindo como uma ferramenta de aprendizado para a construção de compiladores, máquinas virtuais e sistemas de concorrência.
+4.  **Ecossistema Completo:** Fornecer um conjunto de ferramentas integradas, incluindo um compilador (`kavac`), uma máquina virtual (`kavavm`), um gerenciador de pacotes (`kpm`) e um sistema de build (`Makefile`).
+
+## ✨ Principais Funcionalidades
+
+| Categoria | Funcionalidades Chave | Status |
+| :--- | :--- | :---: |
+| **Novidades (KAVA 2.5)** | **Lambdas, Streams, Async/Await, Pipe Operator (`|>`)** | ✅ |
+| **Runtime / VM** | Bytecode próprio, VM baseada em pilha, JIT (experimental) | ✅ |
+| **Gerenciamento de Memória** | Garbage Collector (Mark-Sweep + Generational) | ✅ |
+| **Sistema de Tipos** | Tipagem estática, Generics, Classes, Interfaces, Enums | ✅ |
+| **Orientação a Objetos** | Herança, Polimorfismo, Encapsulamento, Classes Abstratas | ✅ |
+| **Concorrência** | `Thread`, `Runnable`, `synchronized`, `ReentrantLock`, `ThreadPoolExecutor` | ✅ |
+| **Framework de Coleções** | `ArrayList`, `LinkedList`, `HashMap`, `HashSet`, `Queue`, `Stack` | ✅ |
+| **Ferramentas** | Compilador, VM, Gerenciador de Pacotes (KPM), Benchmarks | ✅ |
+
+## 🚀 Começando
+
+Para compilar e executar o KAVA 2.5 em seu sistema, siga os passos abaixo.
+
+### Requisitos
+
+-   `g++` com suporte a C++17
+-   `make`
+-   `pkg-config`
+-   `SDL2`, `SDL2_image`, `SDL2_ttf` (opcional, para os exemplos gráficos)
+
+### Compilação e Uso
+
+O `Makefile` fornecido automatiza todo o processo de build.
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone <URL_DO_SEU_REPOSITORIO>
+    cd kava2
+    ```
+
+2.  **Compile o projeto:**
+    ```bash
+    # Compila tudo (compilador, VM, benchmarks, kpm)
+    make all
+    ```
+
+3.  **Execute um exemplo:**
+    ```bash
+    # Compile o arquivo de teste do KAVA 2.5
+    ./kavac examples/test_2_5.kava
+
+    # Execute o bytecode gerado
+    ./kavavm examples/test_2_5.kvb
+    ```
+
+### Comandos do `Makefile`
+
+-   `make all`: Compila todas as ferramentas.
+-   `make kavac`: Compila apenas o compilador.
+-   `make kavavm`: Compila apenas a Máquina Virtual.
+-   `make test`: Compila e executa os testes principais.
+-   `make bench`: Compila e executa os benchmarks de performance.
+-   `make clean`: Limpa os artefatos de build.
+-   `sudo make install`: Instala os binários `kavac`, `kavavm` e `kpm` em `/usr/local/bin`.
+
+## 📦 Gerenciador de Pacotes (KPM)
+
+KAVA 2.5 inclui o **KPM**, um gerenciador de pacotes para criar e gerenciar projetos.
+
+-   **Inicializar um novo projeto:**
+    ```bash
+    ./kpm init meu-app
+    ```
+-   **Construir o projeto (conforme definido em `kava.pkg`):**
+    ```bash
+    ./kpm build
+    ```
+-   **Executar testes:**
+    ```bash
+    ./kpm test
+    ```
+
+## 📁 Estrutura do Projeto
+
+```
+kava2/
+├── compiler/       # Compilador (Lexer, Parser, Codegen, AST)
+├── vm/             # Máquina Virtual (VM, Bytecode, JIT, Async)
+├── gc/             # Garbage Collector
+├── collections/    # Framework de Coleções
+├── threads/        # Sistema de Concorrência
+├── benchmark/      # Sistema de Benchmarks
+├── stdlib/         # Biblioteca Padrão (http, json, fs, etc.)
+├── examples/       # Códigos de exemplo
+├── kpm/            # Gerenciador de Pacotes KPM
+├── Makefile        # Sistema de build
+├── LICENSE         # Licença MIT
+└── README.md       # Este arquivo
+```
+
+## 📚 Documentação
+
+Para aprender a programar em KAVA, consulte nossos guias detalhados:
+
+-   **[Guia de Programação KAVA 2.5 (PT-BR)](./docs/PROGRAMMING_GUIDE.pt-BR.md)**: Um guia completo da sintaxe e dos recursos da linguagem.
+-   **[KAVA 2.5 Programming Guide (EN)](./docs/PROGRAMMING_GUIDE.en-US.md)**: The complete guide to the language syntax and features.
+
+## 🤝 Como Contribuir
+
+Contribuições são muito bem-vindas! Se você deseja melhorar o KAVA, siga estes passos:
+
+1.  **Faça um Fork** do repositório.
+2.  **Crie uma Branch** para sua feature (`git checkout -b feature/nova-feature`).
+3.  **Faça o Commit** de suas mudanças (`git commit -m 'Adiciona nova feature'`).
+4.  **Faça o Push** para a branch (`git push origin feature/nova-feature`).
+5.  **Abra um Pull Request**.
+
+Por favor, certifique-se de que seus commits seguem as convenções do projeto e que todos os testes estão passando.
+
+## 📜 Licença
+
+Este projeto é distribuído sob a **Licença MIT**. Veja o arquivo [LICENSE](./LICENSE) para mais detalhes.
+
+Copyright (c) 2026 KAVA Team.
