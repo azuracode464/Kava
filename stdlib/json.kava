@@ -1,0 +1,73 @@
+// KAVA 2.5 - JSON Standard Library
+// Parser e serializer JSON rapido
+
+package kava.json;
+
+public class Json {
+    // Parse JSON string to JsonValue
+    public static native JsonValue parse(String jsonString);
+    
+    // Stringify object to JSON
+    public static native String stringify(Object obj);
+    
+    // Pretty print JSON
+    public static native String prettyPrint(Object obj, int indent);
+}
+
+public class JsonValue {
+    public boolean isNull();
+    public boolean isString();
+    public boolean isNumber();
+    public boolean isBoolean();
+    public boolean isArray();
+    public boolean isObject();
+    
+    public String asString();
+    public int asInt();
+    public long asLong();
+    public double asDouble();
+    public boolean asBoolean();
+    public JsonArray asArray();
+    public JsonObject asObject();
+}
+
+public class JsonObject {
+    private Map<String, JsonValue> fields;
+    
+    public JsonValue get(String key) {
+        return fields.get(key);
+    }
+    
+    public void put(String key, JsonValue value) {
+        fields.put(key, value);
+    }
+    
+    public boolean has(String key) {
+        return fields.containsKey(key);
+    }
+    
+    public Set<String> keys() {
+        return fields.keySet();
+    }
+}
+
+public class JsonArray {
+    private List<JsonValue> elements;
+    
+    public JsonValue get(int index) {
+        return elements.get(index);
+    }
+    
+    public void add(JsonValue value) {
+        elements.add(value);
+    }
+    
+    public int size() {
+        return elements.size();
+    }
+    
+    // KAVA 2.5: Stream support
+    public Stream<JsonValue> stream() {
+        return elements.stream();
+    }
+}

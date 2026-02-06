@@ -2,7 +2,8 @@
  * MIT License
  * Copyright (c) 2026 KAVA Team
  * 
- * KAVA 2.0 - Implementação do Lexer
+ * KAVA 2.5 - Implementação do Lexer
+ * Adicionadas keywords: async, await, stream, yield
  */
 
 #include "lexer.h"
@@ -94,6 +95,12 @@ void Lexer::initKeywords() {
     keywords["bool"] = TokenType::BOOLEAN;
     keywords["fn"] = TokenType::FUNC;
     keywords["var"] = TokenType::LET;
+    
+    // KAVA 2.5 keywords
+    keywords["async"] = TokenType::ASYNC;
+    keywords["await"] = TokenType::AWAIT;
+    keywords["stream"] = TokenType::STREAM;
+    keywords["yield"] = TokenType::YIELD;
 }
 
 // ============================================================
@@ -391,6 +398,7 @@ void Lexer::scanToken() {
         case '|':
             if (match('|')) makeToken(TokenType::OR);
             else if (match('=')) makeToken(TokenType::OR_ASSIGN);
+            else if (match('>')) makeToken(TokenType::PIPE_OP);  // KAVA 2.5: |> pipe
             else makeToken(TokenType::PIPE);
             return;
         

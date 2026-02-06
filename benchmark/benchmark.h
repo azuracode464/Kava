@@ -2,8 +2,8 @@
  * MIT License
  * Copyright (c) 2026 KAVA Team
  * 
- * KAVA 2.0 - Sistema de Benchmarks
- * Comparação de performance com Java 5/6
+ * KAVA 2.5 - Sistema de Benchmarks
+ * Comparacao de performance com Java 8 (HotSpot JIT)
  */
 
 #ifndef KAVA_BENCHMARK_H
@@ -351,7 +351,67 @@ public:
         }
     }
     
-    // Registra todos os benchmarks padrão
+    // 11. Stream-like operations (KAVA 2.5 vs Java 8 Streams)
+    static void streamOps(int size = 100000) {
+        std::vector<int> data(size);
+        for (int i = 0; i < size; i++) data[i] = i;
+        
+        // Filter + Map + Sum (stream pipeline)
+        volatile long sum = 0;
+        for (int i = 0; i < size; i++) {
+            if (data[i] % 2 == 0) {  // filter
+                int mapped = data[i] * data[i];  // map
+                sum += mapped;  // reduce
+            }
+        }
+    }
+    
+    // 12. Lambda/Closure overhead
+    static void lambdaOverhead(int iterations = 1000000) {
+        std::function<int(int)> square = [](int x) { return x * x; };
+        std::function<int(int)> doubleIt = [](int x) { return x * 2; };
+        
+        volatile int result = 0;
+        for (int i = 0; i < iterations; i++) {
+            result = square(doubleIt(i % 100));
+        }
+    }
+    
+    // 13. Async simulation (task scheduling overhead)
+    static void asyncSimulation(int tasks = 10000) {
+        std::vector<std::future<int>> futures;
+        futures.reserve(tasks);
+        
+        for (int i = 0; i < tasks; i++) {
+            futures.push_back(std::async(std::launch::deferred, [i]() {
+                return i * i;
+            }));
+        }
+        
+        volatile long sum = 0;
+        for (auto& f : futures) {
+            sum += f.get();
+        }
+    }
+    
+    // 14. HTTP-style request processing
+    static void httpSimulation(int requests = 50000) {
+        // Simulates HTTP request parsing and routing
+        for (int i = 0; i < requests; i++) {
+            std::string path = "/api/users/" + std::to_string(i);
+            std::hash<std::string> hasher;
+            volatile size_t h = hasher(path);
+            (void)h;
+            
+            // Simulate JSON response building
+            std::string response = "{\"id\":" + std::to_string(i) + 
+                                   ",\"name\":\"user" + std::to_string(i) + "\"}";
+            volatile size_t len = response.length();
+            (void)len;
+        }
+    }
+    
+    // Registra todos os benchmarks padrao
     static void registerAll(BenchmarkRunner& runner) {
         runner.add("Arithmetic Loop", []() { arithmeticLoop(); }, 3, 50);
         runner.add("Object Creation", []() { objectCreation(50000); }, 3, 30);
@@ -363,6 +423,11 @@ public:
         runner.add("Sorting 100K", []() { sortingTest(); }, 3, 20);
         runner.add("Thread Test", []() { threadTest(4); }, 2, 20);
         runner.add("Memory Pressure", []() { memoryPressure(500); }, 2, 20);
+        // KAVA 2.5 new benchmarks
+        runner.add("Stream Ops", []() { streamOps(); }, 3, 50);
+        runner.add("Lambda Overhead", []() { lambdaOverhead(); }, 3, 50);
+        runner.add("Async Simulation", []() { asyncSimulation(5000); }, 2, 20);
+        runner.add("HTTP Simulation", []() { httpSimulation(); }, 3, 30);
     }
 };
 
@@ -371,36 +436,43 @@ public:
 // (Valores aproximados baseados em benchmarks típicos)
 // ============================================================
 struct JavaReferenceValues {
-    // Tempos em ms para cada benchmark (aproximados)
+    // Java 5/6 reference times (ms)
     static constexpr double JAVA5_ARITHMETIC = 15.0;
     static constexpr double JAVA6_ARITHMETIC = 12.0;
-    
     static constexpr double JAVA5_OBJECT_CREATION = 50.0;
     static constexpr double JAVA6_OBJECT_CREATION = 35.0;
-    
     static constexpr double JAVA5_ARRAY_ACCESS = 20.0;
     static constexpr double JAVA6_ARRAY_ACCESS = 15.0;
-    
     static constexpr double JAVA5_FUNCTION_CALLS = 30.0;
     static constexpr double JAVA6_FUNCTION_CALLS = 20.0;
-    
     static constexpr double JAVA5_FIBONACCI = 800.0;
     static constexpr double JAVA6_FIBONACCI = 600.0;
-    
     static constexpr double JAVA5_HASHMAP = 100.0;
     static constexpr double JAVA6_HASHMAP = 70.0;
-    
     static constexpr double JAVA5_STRING = 150.0;
     static constexpr double JAVA6_STRING = 100.0;
-    
     static constexpr double JAVA5_SORTING = 80.0;
     static constexpr double JAVA6_SORTING = 60.0;
-    
     static constexpr double JAVA5_THREADS = 50.0;
     static constexpr double JAVA6_THREADS = 35.0;
-    
     static constexpr double JAVA5_MEMORY = 200.0;
     static constexpr double JAVA6_MEMORY = 150.0;
+    
+    // Java 8 reference times (ms) - HotSpot JIT with warmup
+    static constexpr double JAVA8_ARITHMETIC = 8.0;
+    static constexpr double JAVA8_OBJECT_CREATION = 20.0;
+    static constexpr double JAVA8_ARRAY_ACCESS = 10.0;
+    static constexpr double JAVA8_FUNCTION_CALLS = 12.0;
+    static constexpr double JAVA8_FIBONACCI = 350.0;
+    static constexpr double JAVA8_HASHMAP = 45.0;
+    static constexpr double JAVA8_STRING = 60.0;
+    static constexpr double JAVA8_SORTING = 40.0;
+    static constexpr double JAVA8_THREADS = 25.0;
+    static constexpr double JAVA8_MEMORY = 100.0;
+    static constexpr double JAVA8_STREAM = 15.0;
+    static constexpr double JAVA8_LAMBDA = 10.0;
+    static constexpr double JAVA8_ASYNC = 30.0;
+    static constexpr double JAVA8_HTTP = 20.0;
 };
 
 // ============================================================

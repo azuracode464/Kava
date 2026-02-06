@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 #define KAVA_VERSION_MAJOR 2
-#define KAVA_VERSION_MINOR 0
+#define KAVA_VERSION_MINOR 5
 #define KAVA_BYTECODE_MAGIC 0x4B415641  // "KAVA"
 
 // ============================================================
@@ -321,10 +321,64 @@ typedef enum {
     OP_NOT = 0x19,
     OP_NEQ = OP_INE,
     
-    // Aliases para gráficos
+    // Aliases para graficos
     OP_GFX_DRAW_RECT = OP_GFX_DRAW,
     OP_GFX_PRESENT = OP_GFX_DRAW,
-    OP_GFX_POLL_EVENT = OP_GFX_EVENT
+    OP_GFX_POLL_EVENT = OP_GFX_EVENT,
+    
+    // ========================================
+    // KAVA 2.5 - LAMBDA & FUNCTIONAL (0x100+)
+    // ========================================
+    OP_LAMBDA_NEW    = 0x100, // Cria closure (func_index, capture_count)
+    OP_LAMBDA_CALL   = 0x101, // Invoca lambda (arg_count)
+    OP_CAPTURE_LOCAL = 0x102, // Captura variavel local para closure
+    OP_CAPTURE_LOAD  = 0x103, // Carrega variavel capturada
+    
+    // ========================================
+    // KAVA 2.5 - STREAMS (0x110+)
+    // ========================================
+    OP_STREAM_NEW    = 0x110, // Cria stream de array/colecao
+    OP_STREAM_FILTER = 0x111, // Filter com lambda
+    OP_STREAM_MAP    = 0x112, // Map com lambda
+    OP_STREAM_REDUCE = 0x113, // Reduce com lambda
+    OP_STREAM_FOREACH= 0x114, // ForEach com lambda
+    OP_STREAM_COLLECT= 0x115, // Coleta resultados
+    OP_STREAM_COUNT  = 0x116, // Conta elementos
+    OP_STREAM_SUM    = 0x117, // Soma elementos
+    OP_STREAM_SORT   = 0x118, // Ordena stream
+    OP_STREAM_DISTINCT= 0x119,// Remove duplicatas
+    OP_STREAM_LIMIT  = 0x11A, // Limita quantidade
+    OP_STREAM_SKIP   = 0x11B, // Pula elementos
+    OP_STREAM_TOLIST = 0x11C, // Converte para lista
+    OP_STREAM_MIN    = 0x11D, // Menor elemento
+    OP_STREAM_MAX    = 0x11E, // Maior elemento
+    OP_STREAM_FLATMAP= 0x11F, // FlatMap
+    OP_STREAM_ANYMATCH = 0x120,
+    OP_STREAM_ALLMATCH = 0x121,
+    
+    // ========================================
+    // KAVA 2.5 - ASYNC/AWAIT (0x130+)
+    // ========================================
+    OP_ASYNC_CALL    = 0x130, // Chama funcao async
+    OP_AWAIT         = 0x131, // Suspende ate Promise resolver
+    OP_PROMISE_NEW   = 0x132, // Cria nova Promise
+    OP_PROMISE_RESOLVE = 0x133, // Resolve Promise
+    OP_PROMISE_REJECT = 0x134,  // Rejeita Promise
+    OP_YIELD         = 0x135, // Yield em generator
+    OP_EVENT_LOOP_TICK = 0x136, // Tick do event loop
+    
+    // ========================================
+    // KAVA 2.5 - PIPE OPERATOR (0x140)
+    // ========================================
+    OP_PIPE          = 0x140, // Pipe: a |> f  =>  f(a)
+    
+    // ========================================
+    // KAVA 2.5 - JIT HINTS (0x150+)
+    // ========================================
+    OP_JIT_HOTLOOP   = 0x150, // Marca loop como hot (threshold)
+    OP_JIT_HOTFUNC   = 0x151, // Marca funcao como hot
+    OP_JIT_DEOPT     = 0x152, // Deoptimize - volta para interpretado
+    OP_JIT_OSR       = 0x153  // On-Stack Replacement
 } OpCode;
 
 // ============================================================

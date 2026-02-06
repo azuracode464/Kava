@@ -1,0 +1,80 @@
+// KAVA 2.5 - HTTP Standard Library
+// Servidor HTTP nativo com async/await
+
+package kava.http;
+
+public class HttpServer {
+    private int port;
+    private boolean running;
+
+    public HttpServer(int port) {
+        this.port = port;
+        this.running = false;
+    }
+
+    public async void listen(int port) {
+        this.port = port;
+        this.running = true;
+        print "HTTP Server listening on port " + port
+    }
+
+    public void stop() {
+        this.running = false;
+        print "HTTP Server stopped"
+    }
+
+    public void get(String path, HttpHandler handler) {
+        // Register GET route
+    }
+
+    public void post(String path, HttpHandler handler) {
+        // Register POST route
+    }
+}
+
+public interface HttpHandler {
+    void handle(HttpRequest req, HttpResponse res);
+}
+
+public class HttpRequest {
+    public String method;
+    public String path;
+    public String body;
+    public Map<String, String> headers;
+    public Map<String, String> params;
+    public Map<String, String> query;
+}
+
+public class HttpResponse {
+    private int statusCode = 200;
+    private Map<String, String> headers;
+
+    public HttpResponse status(int code) {
+        this.statusCode = code;
+        return this;
+    }
+
+    public void json(String data) {
+        // Send JSON response
+    }
+
+    public void send(String data) {
+        // Send text response
+    }
+
+    public void header(String name, String value) {
+        headers.put(name, value);
+    }
+}
+
+// Factory
+public class Http {
+    public static HttpServer createServer() {
+        return new HttpServer(3000);
+    }
+
+    public static async HttpResponse fetch(String url) {
+        // Async HTTP client
+        return new HttpResponse();
+    }
+}

@@ -1,7 +1,13 @@
-
-
-.o
-.out
+*.o
+*.out
+*.kvb
 kavac
 kavavm
 kavabench
+kpm_bin
+core
+/kava_modules/
+.kpm/
+.wrangler/
+node_modules/
+*.tar.gz

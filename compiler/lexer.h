@@ -2,8 +2,8 @@
  * MIT License
  * Copyright (c) 2026 KAVA Team
  * 
- * KAVA 2.0 - Lexer Completo
- * Suporte a todas as keywords e operadores do Java 6
+ * KAVA 2.5 - Lexer Completo
+ * Suporte a Java 6 + Lambdas, Streams, Async/Await, Functional Interfaces
  */
 
 #ifndef KAVA_LEXER_H
@@ -98,6 +98,14 @@ enum class TokenType {
     FUNC,         // Extensão KAVA para função (alias para método)
     PRINT,        // Extensão KAVA para saída simples
     STRUCT,       // Extensão KAVA (mapeia para classe)
+    
+    // === KAVA 2.5 Keywords ===
+    ASYNC,        // Extensão KAVA 2.5 - async functions
+    AWAIT,        // Extensão KAVA 2.5 - await expressions
+    STREAM,       // Extensão KAVA 2.5 - stream operations
+    YIELD,        // Extensão KAVA 2.5 - yield in generators
+    DEFAULT_METHOD, // Extensão KAVA 2.5 - default interface methods
+    PIPE_OP,      // Extensão KAVA 2.5 - |> pipe operator
     
     // Operadores Aritméticos
     PLUS,         // +

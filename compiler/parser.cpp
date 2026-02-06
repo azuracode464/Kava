@@ -2,7 +2,8 @@
  * MIT License
  * Copyright (c) 2026 KAVA Team
  * 
- * KAVA 2.0 - Implementação do Parser
+ * KAVA 2.5 - Implementação do Parser
+ * Adicionadas: Lambdas, Streams, Async/Await, Pipe Operator
  */
 
 #include "parser.h"
@@ -796,6 +797,16 @@ StmtPtr Parser::parseStatement() {
         if (match(TokenType::CONTINUE)) return parseContinueStatement();
         if (match(TokenType::ASSERT)) return parseAssertStatement();
         if (match(TokenType::PRINT)) return parsePrintStatement();
+        if (match(TokenType::YIELD)) return parseYieldStatement();
+        if (match(TokenType::AWAIT)) {
+            // await como statement: await expr;
+            auto awaitExpr = std::make_shared<AwaitExpr>();
+            awaitExpr->operand = parseExpression();
+            match(TokenType::SEMICOLON);
+            auto exprStmt = std::make_shared<ExprStmt>();
+            exprStmt->expression = awaitExpr;
+            return exprStmt;
+        }
         
         // Bloco
         if (check(TokenType::LBRACE)) return parseBlock();
@@ -1128,7 +1139,17 @@ ExprPtr Parser::parseExpression() {
 }
 
 ExprPtr Parser::parseAssignmentExpression() {
+    // Check for lambda: (params) -> body  or  ident -> body
+    if (isLambdaAhead()) {
+        return parseLambdaExpression();
+    }
+    
     ExprPtr expr = parseTernaryExpression();
+    
+    // KAVA 2.5: Pipe operator |>
+    while (match(TokenType::PIPE_OP)) {
+        expr = parsePipeExpression(expr);
+    }
     
     if (isAssignmentOperator()) {
         Token op = advance();
@@ -1549,6 +1570,11 @@ ExprPtr Parser::parsePrimaryExpression() {
         return expr;
     }
     
+    // KAVA 2.5: await expression
+    if (match(TokenType::AWAIT)) {
+        return parseAwaitExpression();
+    }
+    
     // Identificador
     if (match(TokenType::IDENTIFIER)) {
         auto id = std::make_shared<IdentifierExpr>();
@@ -1656,6 +1682,189 @@ ExprPtr Parser::parseArrayInitializer() {
     consume(TokenType::RBRACE, "Esperado '}'");
     
     return newArray;
+}
+
+// ============================================================
+// KAVA 2.5 - YIELD STATEMENT
+// ============================================================
+StmtPtr Parser::parseYieldStatement() {
+    auto stmt = std::make_shared<YieldStmt>();
+    stmt->value = parseExpression();
+    match(TokenType::SEMICOLON);
+    return stmt;
+}
+
+// ============================================================
+// KAVA 2.5 - LAMBDA EXPRESSION
+// ============================================================
+bool Parser::isLambdaAhead() {
+    // Detecta: (params) -> body  OU  identifier -> body
+    size_t saved = current;
+    bool result = false;
+    
+    try {
+        if (check(TokenType::IDENTIFIER)) {
+            // x -> ...
+            advance();
+            if (check(TokenType::ARROW)) {
+                result = true;
+            }
+        } else if (check(TokenType::LPAREN)) {
+            advance();
+            // () -> ... ou (Type x, ...) -> ...
+            int depth = 1;
+            while (depth > 0 && !isAtEnd()) {
+                if (check(TokenType::LPAREN)) depth++;
+                if (check(TokenType::RPAREN)) depth--;
+                if (depth > 0) advance();
+            }
+            if (check(TokenType::RPAREN)) {
+                advance();
+                if (check(TokenType::ARROW)) {
+                    result = true;
+                }
+            }
+        }
+    } catch (...) {}
+    
+    current = saved;
+    return result;
+}
+
+ExprPtr Parser::parseLambdaExpression() {
+    auto lambda = std::make_shared<LambdaExpr>();
+    
+    // Parse parameters
+    if (check(TokenType::IDENTIFIER) && 
+        current + 1 < tokens.size() && tokens[current + 1].type == TokenType::ARROW) {
+        // Single param without parens: x -> ...
+        ParameterDecl param;
+        auto typeRef = std::make_shared<TypeRefNode>();
+        typeRef->name = "auto";  // Inferred
+        param.type = typeRef;
+        param.name = advance().lexeme;
+        lambda->parameters.push_back(param);
+    } else {
+        // (params) -> ...
+        consume(TokenType::LPAREN, "Esperado '(' para lambda");
+        if (!check(TokenType::RPAREN)) {
+            do {
+                ParameterDecl param;
+                // Try to parse typed param, fall back to inferred
+                size_t saved = current;
+                try {
+                    param.type = parseType();
+                    if (check(TokenType::IDENTIFIER)) {
+                        param.name = advance().lexeme;
+                    } else {
+                        // Was actually just a name
+                        current = saved;
+                        auto typeRef = std::make_shared<TypeRefNode>();
+                        typeRef->name = "auto";
+                        param.type = typeRef;
+                        param.name = consume(TokenType::IDENTIFIER, "Esperado nome do parametro").lexeme;
+                    }
+                } catch (...) {
+                    current = saved;
+                    auto typeRef = std::make_shared<TypeRefNode>();
+                    typeRef->name = "auto";
+                    param.type = typeRef;
+                    param.name = consume(TokenType::IDENTIFIER, "Esperado nome do parametro").lexeme;
+                }
+                lambda->parameters.push_back(param);
+            } while (match(TokenType::COMMA));
+        }
+        consume(TokenType::RPAREN, "Esperado ')'");
+    }
+    
+    consume(TokenType::ARROW, "Esperado '->' para lambda");
+    
+    // Body: block or expression
+    if (check(TokenType::LBRACE)) {
+        lambda->bodyBlock = parseBlock();
+    } else {
+        lambda->bodyExpr = parseExpression();
+    }
+    
+    return lambda;
+}
+
+// ============================================================
+// KAVA 2.5 - STREAM EXPRESSION
+// ============================================================
+ExprPtr Parser::parseStreamExpression(ExprPtr source) {
+    auto stream = std::make_shared<StreamExpr>();
+    stream->source = source;
+    
+    while (match(TokenType::DOT)) {
+        std::string opName = consume(TokenType::IDENTIFIER, "Esperado operacao de stream").lexeme;
+        
+        StreamExpr::StreamOp op;
+        
+        if (opName == "filter") op.kind = StreamExpr::StreamOp::Kind::Filter;
+        else if (opName == "map") op.kind = StreamExpr::StreamOp::Kind::Map;
+        else if (opName == "flatMap") op.kind = StreamExpr::StreamOp::Kind::FlatMap;
+        else if (opName == "reduce") op.kind = StreamExpr::StreamOp::Kind::Reduce;
+        else if (opName == "forEach") op.kind = StreamExpr::StreamOp::Kind::ForEach;
+        else if (opName == "collect") op.kind = StreamExpr::StreamOp::Kind::Collect;
+        else if (opName == "count") op.kind = StreamExpr::StreamOp::Kind::Count;
+        else if (opName == "sum") op.kind = StreamExpr::StreamOp::Kind::Sum;
+        else if (opName == "min") op.kind = StreamExpr::StreamOp::Kind::Min;
+        else if (opName == "max") op.kind = StreamExpr::StreamOp::Kind::Max;
+        else if (opName == "distinct") op.kind = StreamExpr::StreamOp::Kind::Distinct;
+        else if (opName == "sorted") op.kind = StreamExpr::StreamOp::Kind::Sorted;
+        else if (opName == "limit") op.kind = StreamExpr::StreamOp::Kind::Limit;
+        else if (opName == "skip") op.kind = StreamExpr::StreamOp::Kind::Skip;
+        else if (opName == "anyMatch") op.kind = StreamExpr::StreamOp::Kind::AnyMatch;
+        else if (opName == "allMatch") op.kind = StreamExpr::StreamOp::Kind::AllMatch;
+        else if (opName == "noneMatch") op.kind = StreamExpr::StreamOp::Kind::NoneMatch;
+        else if (opName == "findFirst") op.kind = StreamExpr::StreamOp::Kind::FindFirst;
+        else if (opName == "toList") op.kind = StreamExpr::StreamOp::Kind::ToList;
+        else if (opName == "toArray") op.kind = StreamExpr::StreamOp::Kind::ToArray;
+        else break;  // Not a stream op
+        
+        // Parse argument if has parens
+        if (check(TokenType::LPAREN)) {
+            consume(TokenType::LPAREN, "Esperado '('");
+            if (!check(TokenType::RPAREN)) {
+                op.argument = parseExpression();
+            }
+            consume(TokenType::RPAREN, "Esperado ')'");
+        }
+        
+        stream->operations.push_back(op);
+    }
+    
+    return stream;
+}
+
+// ============================================================
+// KAVA 2.5 - PIPE EXPRESSION
+// ============================================================
+ExprPtr Parser::parsePipeExpression(ExprPtr left) {
+    auto pipe = std::make_shared<PipeExpr>();
+    pipe->left = left;
+    pipe->right = parseTernaryExpression();
+    return pipe;
+}
+
+// ============================================================
+// KAVA 2.5 - AWAIT EXPRESSION
+// ============================================================
+ExprPtr Parser::parseAwaitExpression() {
+    auto await = std::make_shared<AwaitExpr>();
+    await->operand = parseUnaryExpression();
+    return await;
+}
+
+// ============================================================
+// KAVA 2.5 - METHOD REFERENCE
+// ============================================================
+ExprPtr Parser::parseMethodReference(ExprPtr object) {
+    auto ref = std::make_shared<MethodRefExpr>();
+    ref->object = object;
+    ref->methodName = consume(TokenType::IDENTIFIER, "Esperado nome do metodo").lexeme;
+    return ref;
 }
 
 } // namespace Kava

@@ -2,7 +2,8 @@
  * MIT License
  * Copyright (c) 2026 KAVA Team
  * 
- * KAVA 2.0 - Code Generator
+ * KAVA 2.5 - Code Generator
+ * Suporte a Lambdas, Streams, Async/Await, Pipe
  */
 
 #ifndef KAVA_CODEGEN_H
@@ -36,8 +37,21 @@ private:
     void emitAt(int index, int32_t value) { bytecode[index] = value; }
     int currentAddress() const { return bytecode.size(); }
 
+    // Lambda/closure tracking
+    struct LambdaInfo {
+        int codeStart;
+        int paramCount;
+        std::vector<std::string> captures;
+    };
+    std::vector<LambdaInfo> lambdas;
+    int nextLambdaIdx = 0;
+    
     void visitStatement(StmtPtr stmt);
     void visitExpression(ExprPtr expr);
+    void visitLambda(std::shared_ptr<class LambdaExpr> lambda);
+    void visitStream(std::shared_ptr<class StreamExpr> stream);
+    void visitAwait(std::shared_ptr<class AwaitExpr> awaitExpr);
+    void visitPipe(std::shared_ptr<class PipeExpr> pipe);
     
     // Helpers
     void enterLoop(int startAddr) {

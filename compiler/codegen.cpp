@@ -2,7 +2,8 @@
  * MIT License
  * Copyright (c) 2026 KAVA Team
  * 
- * KAVA 2.0 - Code Generator Completo
+ * KAVA 2.5 - Code Generator Completo
+ * Suporte a Lambdas, Streams, Async/Await, Pipe
  */
 
 #include "codegen.h"
@@ -260,10 +261,19 @@ void Codegen::visitStatement(StmtPtr stmt) {
             if (assertStmt->message) {
                 visitExpression(assertStmt->message);
             }
-            // TODO: throw AssertionError
             emit(OP_ATHROW);
             
             bytecode[okAddr] = bytecode.size();
+            break;
+        }
+        
+        // KAVA 2.5 - Yield Statement
+        case NodeType::YieldStmt: {
+            auto yieldStmt = std::static_pointer_cast<YieldStmt>(stmt);
+            if (yieldStmt->value) {
+                visitExpression(yieldStmt->value);
+            }
+            emit(OP_YIELD);
             break;
         }
         
@@ -603,10 +613,140 @@ void Codegen::visitExpression(ExprPtr expr) {
             break;
         }
         
+        // KAVA 2.5 - Lambda Expression
+        case NodeType::LambdaExpr: {
+            auto lambda = std::static_pointer_cast<LambdaExpr>(expr);
+            visitLambda(lambda);
+            break;
+        }
+        
+        // KAVA 2.5 - Stream Expression
+        case NodeType::StreamExpr: {
+            auto stream = std::static_pointer_cast<StreamExpr>(expr);
+            visitStream(stream);
+            break;
+        }
+        
+        // KAVA 2.5 - Await Expression
+        case NodeType::AwaitExpr: {
+            auto awaitExpr = std::static_pointer_cast<AwaitExpr>(expr);
+            visitAwait(awaitExpr);
+            break;
+        }
+        
+        // KAVA 2.5 - Pipe Expression
+        case NodeType::PipeExpr: {
+            auto pipe = std::static_pointer_cast<PipeExpr>(expr);
+            visitPipe(pipe);
+            break;
+        }
+        
         default:
             emit(OP_PUSH_NULL);
             break;
     }
+}
+
+// ============================================================
+// KAVA 2.5 - LAMBDA CODE GENERATION
+// ============================================================
+void Codegen::visitLambda(std::shared_ptr<LambdaExpr> lambda) {
+    // Emit lambda creation
+    emit(OP_LAMBDA_NEW);
+    int lambdaIdx = nextLambdaIdx++;
+    emit(lambdaIdx);
+    emit(lambda->parameters.size());
+    
+    // Lambda body code is stored inline, skipped by JMP
+    emit(OP_JMP);
+    int skipAddr = currentAddress();
+    emit(0);  // placeholder
+    
+    LambdaInfo info;
+    info.codeStart = currentAddress();
+    info.paramCount = lambda->parameters.size();
+    
+    // Register parameters as locals in lambda scope
+    std::map<std::string, int> savedVars = variables;
+    int savedNextVar = nextVarIdx;
+    
+    for (size_t i = 0; i < lambda->parameters.size(); i++) {
+        variables[lambda->parameters[i].name] = i;
+    }
+    nextVarIdx = lambda->parameters.size();
+    
+    if (lambda->bodyBlock) {
+        visitStatement(lambda->bodyBlock);
+    } else if (lambda->bodyExpr) {
+        visitExpression(lambda->bodyExpr);
+        emit(OP_IRET);
+    }
+    emit(OP_RET);
+    
+    // Restore scope
+    variables = savedVars;
+    nextVarIdx = savedNextVar;
+    
+    lambdas.push_back(info);
+    
+    // Patch skip address
+    emitAt(skipAddr, currentAddress());
+}
+
+// ============================================================
+// KAVA 2.5 - STREAM CODE GENERATION
+// ============================================================
+void Codegen::visitStream(std::shared_ptr<StreamExpr> stream) {
+    // Push source onto stack
+    visitExpression(stream->source);
+    emit(OP_STREAM_NEW);
+    
+    // Apply each operation
+    for (const auto& op : stream->operations) {
+        if (op.argument) {
+            visitExpression(op.argument);
+        }
+        
+        switch (op.kind) {
+            case StreamExpr::StreamOp::Kind::Filter: emit(OP_STREAM_FILTER); break;
+            case StreamExpr::StreamOp::Kind::Map: emit(OP_STREAM_MAP); break;
+            case StreamExpr::StreamOp::Kind::FlatMap: emit(OP_STREAM_FLATMAP); break;
+            case StreamExpr::StreamOp::Kind::Reduce: emit(OP_STREAM_REDUCE); break;
+            case StreamExpr::StreamOp::Kind::ForEach: emit(OP_STREAM_FOREACH); break;
+            case StreamExpr::StreamOp::Kind::Collect: emit(OP_STREAM_COLLECT); break;
+            case StreamExpr::StreamOp::Kind::Count: emit(OP_STREAM_COUNT); break;
+            case StreamExpr::StreamOp::Kind::Sum: emit(OP_STREAM_SUM); break;
+            case StreamExpr::StreamOp::Kind::Min: emit(OP_STREAM_MIN); break;
+            case StreamExpr::StreamOp::Kind::Max: emit(OP_STREAM_MAX); break;
+            case StreamExpr::StreamOp::Kind::Distinct: emit(OP_STREAM_DISTINCT); break;
+            case StreamExpr::StreamOp::Kind::Sorted: emit(OP_STREAM_SORT); break;
+            case StreamExpr::StreamOp::Kind::Limit: emit(OP_STREAM_LIMIT); break;
+            case StreamExpr::StreamOp::Kind::Skip: emit(OP_STREAM_SKIP); break;
+            case StreamExpr::StreamOp::Kind::AnyMatch: emit(OP_STREAM_ANYMATCH); break;
+            case StreamExpr::StreamOp::Kind::AllMatch: emit(OP_STREAM_ALLMATCH); break;
+            case StreamExpr::StreamOp::Kind::ToList: emit(OP_STREAM_TOLIST); break;
+            case StreamExpr::StreamOp::Kind::ToArray: emit(OP_STREAM_TOLIST); break;
+            default: break;
+        }
+    }
+}
+
+// ============================================================
+// KAVA 2.5 - AWAIT CODE GENERATION
+// ============================================================
+void Codegen::visitAwait(std::shared_ptr<AwaitExpr> awaitExpr) {
+    visitExpression(awaitExpr->operand);
+    emit(OP_AWAIT);
+}
+
+// ============================================================
+// KAVA 2.5 - PIPE CODE GENERATION
+// ============================================================
+void Codegen::visitPipe(std::shared_ptr<PipeExpr> pipe) {
+    // a |> f  =>  f(a)
+    visitExpression(pipe->left);   // Push value
+    visitExpression(pipe->right);  // Push function
+    emit(OP_PIPE);                 // Apply
 }
 
 } // namespace Kava

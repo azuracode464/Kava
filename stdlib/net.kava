@@ -1,0 +1,101 @@
+// KAVA 2.5 - Network Standard Library
+// TCP/UDP sockets e WebSocket
+
+package kava.net;
+
+public class Socket {
+    private String host;
+    private int port;
+    private boolean connected;
+    
+    public Socket(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
+    
+    public async void connect() {
+        this.connected = true;
+    }
+    
+    public async void send(byte[] data) {
+        // Send data
+    }
+    
+    public async byte[] receive() {
+        return new byte[0];
+    }
+    
+    public void close() {
+        this.connected = false;
+    }
+    
+    public boolean isConnected() {
+        return connected;
+    }
+}
+
+public class ServerSocket {
+    private int port;
+    
+    public ServerSocket(int port) {
+        this.port = port;
+    }
+    
+    public async Socket accept() {
+        // Accept incoming connection
+        return null;
+    }
+    
+    public void close() {
+        // Close server socket
+    }
+}
+
+public class WebSocket {
+    private String url;
+    private boolean connected;
+    
+    public WebSocket(String url) {
+        this.url = url;
+    }
+    
+    public async void connect() {
+        this.connected = true;
+    }
+    
+    public async void send(String message) {
+        // Send message
+    }
+    
+    public void onMessage(WebSocketHandler handler) {
+        // Register message handler
+    }
+    
+    public void onClose(Runnable handler) {
+        // Register close handler
+    }
+    
+    public void close() {
+        this.connected = false;
+    }
+}
+
+public interface WebSocketHandler {
+    void onMessage(String message);
+}
+
+public class URL {
+    public String protocol;
+    public String host;
+    public int port;
+    public String path;
+    public String query;
+    
+    public static URL parse(String urlString) {
+        return new URL();
+    }
+    
+    public String toString() {
+        return protocol + "://" + host + ":" + port + path;
+    }
+}

@@ -1,0 +1,111 @@
+/*
+ * KAVA 2.5 - Testes Completos
+ */
+
+// TESTE 1: Variáveis e Aritmética Básica
+let a = 10
+let b = 20
+let soma = a + b
+print soma
+
+let mult = a * b
+print mult
+
+let div = b / a
+print div
+
+let mod = 27 % 10
+print mod
+
+// TESTE 2: If/Else
+if (soma == 30) {
+    print 1
+} else {
+    print 0
+}
+
+// TESTE 3: While loop
+let counter = 0
+while (counter < 3) {
+    counter = counter + 1
+}
+print counter
+
+// TESTE 4: For loop
+let total = 0
+let i = 0
+while (i < 5) {
+    total = total + i
+    i = i + 1
+}
+print total
+
+// TESTE 5: Nested if/else
+let x = 42
+if (x > 50) {
+    print 0
+} else {
+    if (x > 40) {
+        print 42
+    } else {
+        print 0
+    }
+}
+
+// TESTE 6: Bitwise ops
+let bit_and = 12 & 10
+print bit_and
+
+let bit_or = 12 | 10
+print bit_or
+
+let bit_xor = 12 ^ 10
+print bit_xor
+
+let shl = 1 << 4
+print shl
+
+// TESTE 7: Compound assign
+let c = 10
+c = c + 5
+print c
+
+c = c - 3
+print c
+
+c = c * 2
+print c
+
+// TESTE 8: Boolean logic
+let t = 1
+let f = 0
+if (t == 1) {
+    if (f == 0) {
+        print 999
+    }
+}
+
+// TESTE 9: Nested loops
+let sum2 = 0
+let j = 0
+while (j < 10) {
+    let k = 0
+    while (k < 10) {
+        sum2 = sum2 + 1
+        k = k + 1
+    }
+    j = j + 1
+}
+print sum2
+
+// TESTE 10: Heavy computation
+let big = 0
+let n = 0
+while (n < 1000) {
+    big = big + n
+    n = n + 1
+}
+print big
+
+// Final success marker
+print 7777

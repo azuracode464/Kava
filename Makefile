@@ -1,7 +1,7 @@
 # MIT License
 # Copyright (c) 2026 KAVA Team
 # 
-# KAVA 2.0 - Makefile
+# KAVA 2.5 - Makefile
 
 CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -O3 -I. -I./vm -I./compiler -I./gc -I./collections -I./threads -I./benchmark
@@ -16,24 +16,24 @@ ifneq ($(SDL_LDFLAGS),)
     LDFLAGS += $(SDL_LDFLAGS) -lSDL2_ttf -lSDL2_image
 endif
 
-# Arquivos fonte
-COMPILER_SRCS = compiler/lexer.cpp compiler/parser.cpp compiler/codegen.cpp compiler/main.cpp
-VM_SRCS = vm/vm.cpp
-BENCH_SRCS = benchmark/main.cpp
-
 # Targets
-all: kavac kavavm benchmark
+all: kavac kavavm kavabench kpm
+
 # Compilador
-kavac: $(COMPILER_SRCS)
-	$(CXX) $(CXXFLAGS) $(COMPILER_SRCS) -o kavac
+kavac: compiler/lexer.cpp compiler/parser.cpp compiler/codegen.cpp compiler/main.cpp
+	$(CXX) $(CXXFLAGS) $^ -o kavac
 
 # VM
 kavavm: vm/vm.cpp
 	$(CXX) $(CXXFLAGS) vm/vm.cpp -o kavavm $(LDFLAGS)
 
 # Benchmark
-benchmark: benchmark/main.cpp
+kavabench: benchmark/main.cpp
 	$(CXX) $(CXXFLAGS) benchmark/main.cpp -o kavabench $(LDFLAGS)
+
+# Package Manager
+kpm: kpm/main.cpp
+	$(CXX) $(CXXFLAGS) kpm/main.cpp -o kpm_bin
 
 # VM standalone (apenas header)
 vm/vm.cpp:
@@ -54,25 +54,25 @@ vm/vm.cpp:
 	@echo '}' >> vm/vm.cpp
 
 # Testes
-test: all
-	./kavac examples/test_2_0.kava
-	./kavavm examples/test_2_0.kvb
+test: kavac kavavm
+	@bash tests/run_tests.sh
 
 # Benchmark
-bench: benchmark
+bench: kavabench
 	./kavabench
 
 # Limpeza
 clean:
-	rm -f kavac kavavm kavabench
+	rm -f kavac kavavm kavabench kpm_bin
 	rm -f examples/*.kvb
-	rm -f vm/vm.cpp
+	rm -f /tmp/kava_test_*
 
 # Instalação
 install: all
 	mkdir -p /usr/local/bin
 	cp kavac /usr/local/bin/
 	cp kavavm /usr/local/bin/
+	cp kpm_bin /usr/local/bin/kpm
 
 # Documentação
-.PHONY: all clean test bench install benchmark
+.PHONY: all clean test bench install kpm

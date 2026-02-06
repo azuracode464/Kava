@@ -2,8 +2,8 @@
  * MIT License
  * Copyright (c) 2026 KAVA Team
  * 
- * KAVA 2.0 - Abstract Syntax Tree Completo
- * Suporte a todas as features do Java 6
+ * KAVA 2.5 - Abstract Syntax Tree Completo
+ * Suporte a Java 6 + Lambdas, Streams, Async/Await, Functional Interfaces
  */
 
 #ifndef KAVA_AST_H
@@ -91,6 +91,12 @@ enum class NodeType {
     CastExpr,
     InstanceOfExpr,
     LambdaExpr,
+    MethodRefExpr,
+    StreamExpr,
+    PipeExpr,
+    AwaitExpr,
+    AsyncMethodDecl,
+    YieldStmt,
     
     // Anotações
     Annotation,
@@ -410,8 +416,107 @@ public:
 };
 
 // ============================================================
-// INSTANCEOF
+// PARÂMETRO DE MÉTODO (forward para uso em Lambda)
 // ============================================================
+struct ParameterDecl {
+    std::vector<AnnotationPtr> annotations;
+    Modifiers modifiers;
+    TypeRefPtr type;
+    std::string name;
+    bool isVarArgs = false;
+};
+
+// ============================================================
+// LAMBDA EXPRESSION (KAVA 2.5)
+// ============================================================
+class LambdaExpr : public Expression {
+public:
+    std::vector<ParameterDecl> parameters;
+    // Body pode ser uma expressao (body simples) ou BlockStmt
+    ExprPtr bodyExpr;  // Para (x) -> x * 2
+    std::shared_ptr<class BlockStmt> bodyBlock;  // Para (x) -> { ... }
+    
+    // Tipo da interface funcional inferido
+    TypeRefPtr inferredType;
+    
+    NodeType getType() const override { return NodeType::LambdaExpr; }
+    void accept(ASTVisitor& visitor) override;
+};
+
+// ============================================================
+// METHOD REFERENCE (KAVA 2.5) - Class::method
+// ============================================================
+class MethodRefExpr : public Expression {
+public:
+    ExprPtr object;      // null para referencia estatica
+    TypeRefPtr classType; // Para Class::method
+    std::string methodName;
+    
+    NodeType getType() const override { return NodeType::MethodRefExpr; }
+    void accept(ASTVisitor& visitor) override;
+};
+
+// ============================================================
+// STREAM EXPRESSION (KAVA 2.5)
+// ============================================================
+class StreamExpr : public Expression {
+public:
+    ExprPtr source;  // A colecao/array de origem
+    
+    struct StreamOp {
+        enum class Kind {
+            Filter, Map, FlatMap, Reduce, ForEach,
+            Collect, Count, Sum, Min, Max,
+            Distinct, Sorted, Limit, Skip,
+            AnyMatch, AllMatch, NoneMatch,
+            FindFirst, FindAny, ToList, ToArray
+        };
+        Kind kind;
+        ExprPtr argument;  // Lambda ou valor
+    };
+    
+    std::vector<StreamOp> operations;
+    
+    NodeType getType() const override { return NodeType::StreamExpr; }
+    void accept(ASTVisitor& visitor) override;
+};
+
+// ============================================================
+// PIPE EXPRESSION (KAVA 2.5) - value |> func
+// ============================================================
+class PipeExpr : public Expression {
+public:
+    ExprPtr left;   // Valor de entrada
+    ExprPtr right;  // Funcao a aplicar
+    
+    NodeType getType() const override { return NodeType::PipeExpr; }
+    void accept(ASTVisitor& visitor) override;
+};
+
+// ============================================================
+// AWAIT EXPRESSION (KAVA 2.5)
+// ============================================================
+class AwaitExpr : public Expression {
+public:
+    ExprPtr operand;  // A Promise/Future a esperar
+    
+    NodeType getType() const override { return NodeType::AwaitExpr; }
+    void accept(ASTVisitor& visitor) override;
+};
+
+// ============================================================
+// YIELD STATEMENT (KAVA 2.5)
+// ============================================================
+class YieldStmt : public Statement {
+public:
+    ExprPtr value;
+    
+    NodeType getType() const override { return NodeType::YieldStmt; }
+    void accept(ASTVisitor& visitor) override;
+};
+
+// ============================================================
+// INSTANCEOF
 class InstanceOfExpr : public Expression {
 public:
     ExprPtr operand;
@@ -666,17 +771,6 @@ public:
 };
 
 // ============================================================
-// PARÂMETRO DE MÉTODO
-// ============================================================
-struct ParameterDecl {
-    std::vector<AnnotationPtr> annotations;
-    Modifiers modifiers;
-    TypeRefPtr type;
-    std::string name;
-    bool isVarArgs = false;
-};
-
-// ============================================================
 // DECLARAÇÃO DE MÉTODO
 // ============================================================
 class MethodDecl : public ASTNode {
@@ -872,6 +966,12 @@ public:
     virtual void visit(MemberExpr& node) {}
     virtual void visit(CastExpr& node) {}
     virtual void visit(InstanceOfExpr& node) {}
+    virtual void visit(LambdaExpr& node) {}
+    virtual void visit(MethodRefExpr& node) {}
+    virtual void visit(StreamExpr& node) {}
+    virtual void visit(PipeExpr& node) {}
+    virtual void visit(AwaitExpr& node) {}
+    virtual void visit(YieldStmt& node) {}
     
     // Statements
     virtual void visit(VarDeclStmt& node) {}
@@ -927,6 +1027,12 @@ inline void ArrayAccessExpr::accept(ASTVisitor& v) { v.visit(*this); }
 inline void MemberExpr::accept(ASTVisitor& v) { v.visit(*this); }
 inline void CastExpr::accept(ASTVisitor& v) { v.visit(*this); }
 inline void InstanceOfExpr::accept(ASTVisitor& v) { v.visit(*this); }
+inline void LambdaExpr::accept(ASTVisitor& v) { v.visit(*this); }
+inline void MethodRefExpr::accept(ASTVisitor& v) { v.visit(*this); }
+inline void StreamExpr::accept(ASTVisitor& v) { v.visit(*this); }
+inline void PipeExpr::accept(ASTVisitor& v) { v.visit(*this); }
+inline void AwaitExpr::accept(ASTVisitor& v) { v.visit(*this); }
+inline void YieldStmt::accept(ASTVisitor& v) { v.visit(*this); }
 inline void VarDeclStmt::accept(ASTVisitor& v) { v.visit(*this); }
 inline void BlockStmt::accept(ASTVisitor& v) { v.visit(*this); }
 inline void ExprStmt::accept(ASTVisitor& v) { v.visit(*this); }

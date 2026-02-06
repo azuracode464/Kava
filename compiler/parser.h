@@ -2,8 +2,8 @@
  * MIT License
  * Copyright (c) 2026 KAVA Team
  * 
- * KAVA 2.0 - Parser Completo
- * Gramática completa equivalente ao Java 6
+ * KAVA 2.5 - Parser Completo
+ * Gramática Java 6 + Lambdas, Streams, Async/Await, Pipe Operator
  */
 
 #ifndef KAVA_PARSER_H
@@ -140,6 +140,7 @@ private:
     StmtPtr parseContinueStatement();
     StmtPtr parsePrintStatement();  // Extensão KAVA
     StmtPtr parseExpressionStatement();
+    StmtPtr parseYieldStatement();   // KAVA 2.5
     
     // ========================================
     // PARSING DE EXPRESSÕES
@@ -168,6 +169,14 @@ private:
     ExprPtr parseMemberAccess(ExprPtr object);
     std::vector<ExprPtr> parseArguments();
     ExprPtr parseArrayInitializer();
+    
+    // KAVA 2.5 - Novas expressões
+    ExprPtr parseLambdaExpression();
+    ExprPtr parseStreamExpression(ExprPtr source);
+    ExprPtr parsePipeExpression(ExprPtr left);
+    ExprPtr parseAwaitExpression();
+    ExprPtr parseMethodReference(ExprPtr object);
+    bool isLambdaAhead();
     
     // ========================================
     // HELPERS PARA EXPRESSÕES
